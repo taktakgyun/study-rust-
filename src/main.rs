@@ -2,6 +2,8 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
+use std::thread;
+use std::time::Duration;
 
 const TEMPLATES: &str = "templates";
 
@@ -20,8 +22,16 @@ fn handle_connection(mut stream: TcpStream) {
     stream.read(&mut buffer).unwrap();
 
     let get = b"GET / HTTP/1.1\r\n";
+    let sleep = b"GET /sleep HTTP/1.1\r\n";
 
+    // branch response
     let (status_line, file_name) = if buffer.starts_with(get) {
+        (
+            "HTTP/1.1 200 OK\r\n\r\n",
+            format!("{}/hello.html", TEMPLATES),
+        )
+    } else if buffer.starts_with(sleep) {
+        thread::sleep(Duration::from_secs(5));
         (
             "HTTP/1.1 200 OK\r\n\r\n",
             format!("{}/hello.html", TEMPLATES),
